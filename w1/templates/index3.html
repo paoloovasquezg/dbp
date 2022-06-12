@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro personas</title>
+    <style>
+        .registro{
+            padding-left: 10px;
+            border-bottom: 2px solid black;
+        }
+        .title{
+            font-size: 2rem;
+            border: 2px solid black;
+            text-align: center;
+            line-height: 100px;
+            color:white;
+            background: black;
+        }
+        .form{
+            float: right;
+            position: relative;
+            top: 20px;
+            right: 585px;
+        }
+    </style>
+</head>
+<body>
+    <p class = 'title'>
+        Registro personas
+    </p>
+</body>
+<div class = 'form'>
+    <form action = '/personas/ingreso_normal' method = "POST">
+    <div>
+        <label for = 'field1'>nombre</label>
+        <input type = 'text' id = 'nombre', name = 'nombre'>
+    </div>
+    <div>
+        <label for = 'field2'>apellidos</label>
+        <input type = 'text' id = 'apellidos', name = 'apellidos'>
+    </div>
+    <div>
+        <label for = 'field3'>edad</label>
+        <input type = 'text' id = 'edad', name = 'edad'>
+    </div>
+    <div>
+        <label for = 'field4'>residencia</label>
+        <input type = 'text' id = 'residencia', name = 'residencia'>
+    </div>
+    <div>
+        <input type = 'submit' value = 'Agregar'>
+    </div>
+    </form>
+</div>
+    <div class = 'registros'>
+        {% for d in data%}
+            <h2> Persona {{d.id}}: </h2>
+            <div class = 'registro'>
+            <p>Nombre: {{d.nombre}}</p>
+            <p>Apellidos: {{d.apellidos}}</p>
+            <p>Edad: {{d.edad}} años</p>
+            <p>Residencia: {{d.residencia}}</p>
+        </div>
+        {% endfor %}
+    </div>
+</html>

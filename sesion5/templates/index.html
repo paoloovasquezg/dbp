@@ -1,0 +1,214 @@
+<html>
+    <head>
+        <title>Todo App</title>
+        <style>
+            .hidden {
+                display: none;
+            }
+
+            ul {
+                list-style: none;
+                padding: 0px;
+                margin: 0px;
+                width: 300px;
+            }
+
+            .container {
+                display: flex;
+                flex-direction: row;
+                width: 320px;
+            }
+
+            .box {
+                border: 1px solid red;
+            }
+
+            li {
+                clear: both;
+            }
+
+            ul > li > button {
+                border: none;
+                color: red;
+                outline: none;
+                float: right;
+                font-size: 20px;
+                background-color: white;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="box">
+                <form id="list-form">
+                    <input type="text" id="name" name="name"/>
+                    <input type="submit", value="Create"/>
+                </form>
+                <ul id="lists">
+                    {% for list in lists %}
+                    <li>
+                        <a href="/lists/{{list.id}}">
+                            {{list.name}}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+    
+            <div class="box">
+                <div id="error" class="hidden">
+                    <p style="color: red; font-size: 24px;">Something went wrong!!!</p>
+                </div>
+                <h4>{{current_list.name}}</h4>
+                <form id="todo-form">
+                    <input type="text" id="description" name="description" />
+                    <input type="hidden" id="hidden_list_id" value="{{current_list.id}}"/>
+                    <input type="submit" value="Create"/>
+                </form>
+                <ul id ='todos'>
+                    {% for todo in todos %}
+                        <li>
+                            <input class="check-completed" data-id="{{todo.id}}" type="checkbox" {% if todo.completed %} checked {% endif %}>
+                            {{todo.description}}
+                            <button class="delete-button" data-id="{{todo.id}}">&cross;</button>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+
+        <script>
+            //delete todo
+            const items = document.querySelectorAll('.delete-button');
+            for (let i = 0; i < items.length; i ++) {
+                const item = items[i];
+                item.onclick = function(e) {
+                    console.log("e: ", e);
+                    const todo_id = e.target.dataset['id'];
+                    fetch('/todos/' + todo_id + '/delete-todo', {
+                        method: 'DELETE'
+                    }).then(function(response) {
+                        return response.json();
+                    }).then(function(jsonResponse) {
+                        console.log("jsonResponse: ", jsonResponse);
+                        if (jsonResponse['success']) {
+                            const item = e.target.parentElement;
+                            item.remove();
+                        }
+                    });
+                }
+            }
+
+            //update completed from todo
+            const checkboxes = document.querySelectorAll('.check-completed');
+            for (let i = 0; i < checkboxes.length; i++) {
+                const checkbox = checkboxes[i];
+                checkbox.onchange = function(e) {
+                    console.log("e: ", e);
+                    const new_completed = e.target.checked;
+                    const todo_id = e.target.dataset['id'];
+                    fetch('/todos/'+ todo_id +'/set-completed', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            'new_completed': new_completed
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }).catch(function(error) {
+                        document.getElementById('error').className = '';
+                    });
+                }
+            }
+
+            //Insert new List
+            const nameInput = document.getElementById('name');
+            document.getElementById('list-form').onsubmit = function(e) {
+                e.preventDefault();
+                const name = nameInput.value;
+                fetch('/lists/create', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        'name': name
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => response.json())
+                .then(function(jsonResponse) {
+                    const liItem = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = '/lists/' + jsonResponse['id']; 
+                    a.innerHTML = jsonResponse['name'];
+                    
+                    liItem.appendChild(a);
+
+                    document.getElementById('lists').appendChild(liItem);
+                    document.getElementById('name').value = '';
+                    document.getElementById('error').className = 'hidden';
+                })
+                .catch(function(){
+                    document.getElementById('error').className = '';
+                })
+            }
+
+
+
+            //Insert new todo
+            const descriptionInput = document.getElementById('description');
+            document.getElementById('todo-form').onsubmit = function(e) {
+                e.preventDefault();
+                const description = descriptionInput.value;
+                const list_id = document.getElementById('hidden_list_id').value;
+                fetch('/todos/create', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        'description': description,
+                        'list_id': list_id
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => {
+                    console.log("response: ", response);
+                    return response.json();
+                })
+                .then(function(jsonResponse) {
+                    console.log("jsonResponse: ", jsonResponse);
+                    const li = document.createElement('li');
+                    const checkbox = document.createElement('input');
+                    const deleteBtn = document.createElement('button');
+                    
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'check-completed';
+                    checkbox.setAttribute('data-id', jsonResponse['id']);
+                    
+                    li.appendChild(checkbox);
+
+                    deleteBtn.className = 'delete-button';
+                    deleteBtn.setAttribute('data-id', jsonResponse['id']);
+                    deleteBtn.innerHTML = '&cross;';
+
+                    li.appendChild(deleteBtn);
+
+                    const text = document.createTextNode(
+                        ' ' + jsonResponse['description']
+                    );
+
+                    li.appendChild(text);
+
+                    document.getElementById('todos').appendChild(li);
+                    document.getElementById('error').className = 'hidden';
+                    document.getElementById('description').value = '';
+
+                }).catch(function(){
+                    document.getElementById('error').className = '';
+                });
+
+            }
+            
+        </script>
+    </body>
+</html>

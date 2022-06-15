@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 
-database_name='api'
-database_path='postgresql://{}:{}@{}/{}'.format('postgres','123456','localhost:5432', database_name)
+database_name='test'
+database_path='postgresql://{}:{}@{}/{}'.format('postgres','1234','localhost:5432', database_name)
 #'postgresql://postgres@localhost:5432/todoapp10'
 db = SQLAlchemy()
 
@@ -64,6 +64,17 @@ class TodoList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
     todos = db.relationship('Todo', backref='list', lazy=True)
+
+
+    def insert(self):
+        try:
+            db.session.add(self)
+            db.session.commit()
+            return self.id
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
 
     def __repr__(self):
         return f'TodoList: id={self.id}, description={self.name}'

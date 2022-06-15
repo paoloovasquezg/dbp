@@ -1,6 +1,6 @@
 import unittest
 
-from app import create_app
+from server import create_app
 from models import setup_db, Todo, TodoList
 import json
 
@@ -10,7 +10,7 @@ class TestCaseTodoApp(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client
         self.database_name = 'test'
-        self.database_path='postgresql://{}:{}@{}/{}'.format('postgres','123456', 'localhost:5432', self.database_name)
+        self.database_path='postgresql://{}:{}@{}/{}'.format('postgres','1234', 'localhost:5432', self.database_name)
         setup_db(self.app, self.database_path)
 
         self.new_todo = {
@@ -18,6 +18,17 @@ class TestCaseTodoApp(unittest.TestCase):
             'completed': False,
             'list_id': 1
         }
+
+        # self.new_list = {
+        #     'name': 'hola'
+        # }
+
+        # res = self.client().get('/lists')
+        # data = json.loads(res.data)
+
+        # if data['success'] != True:
+        #     self.client().post('/lists', json = self.new_list)
+        #     self.client().post('/todos', json=self.new_todo)
 
     def test_get_todos_success(self):
         self.client().post('/todos', json=self.new_todo)
@@ -111,7 +122,6 @@ class TestCaseTodoApp(unittest.TestCase):
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'Unprocessable')
-
 
 
     def tearDown(self):
